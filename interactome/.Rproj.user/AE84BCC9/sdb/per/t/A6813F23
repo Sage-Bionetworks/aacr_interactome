@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1523039950528.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A6813F23",
+    "lastKnownWriteTime" : 4321909040,
+    "last_content_update" : 1523039950528,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "4C5C1C01",
+        "caption" : "smi_abstracts",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=smi_abstracts&cache_key=4C5C1C01",
+        "displayedObservations" : 110,
+        "environment" : "",
+        "object" : "smi_abstracts",
+        "preview" : 0,
+        "totalObservations" : 110,
+        "variables" : 22
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

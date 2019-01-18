@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <style>
+      /* BASIC STYLES */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Lato','Roboto', sans-serif;
+      }
+
+      header {
+        width: 100%;
+      }
+
+      footer{
+        background: #f2f2f2;
+        border-top: solid 2px #e4e4e4;
+        position: fixed;
+        bottom: 0;
+        padding-bottom: 0;
+        width: 100%;
+      }
+
+      .footer-left{
+        float: left;
+        margin: 0.5em;
+      }
+      
+      @media screen and (max-width: 400px) {
+       footer {
+         bottom: 0;
+       }
+       .footer-left {
+         text-align: center;
+         margin: auto; 
+         padding-top: 10px;
+          
+       }
+      }
+
+      @media screen and (max-width: 565px) {
+        footer {
+        /*    bottom: 0;
+           postion: absolute; */
+          position:absolute;
+          bottom:0;
+          width:100%;
+          height:60px;
+        }
+
+        .footer-left {
+          text-align: center;
+          margin: auto; 
+          padding-top: 10px;
+            
+        }
+
+      }
+      /* CONTENT */
+      .title{
+        text-align: center;
+        display: block;
+        margin: 0 auto;
+        clear: both;
+        padding-bottom: 20px;
+      }
+
+      svg{
+        fill: none;
+      }
+      .node circle {
+        fill: #fff;
+        stroke: steelblue;
+        stroke-width: 1px;
+      }
+
+      .node {
+        font-size: 12px;
+      }
+
+      .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 1.5px;
+      }
+
+      text {
+        fill: black;
+      }
+
+      div.nodeinfo {   
+        position: absolute;           
+        text-align: left;           
+        width: 200px;                  
+        height: auto;                 
+        padding: 2px;             
+        font: 12px sans-serif;        
+        background: #edd49a;   
+        border: 1px;      
+        border-radius: 8px;           
+      }
+
+      div#canvas{
+        margin: 10em;
+        margin-top: 0;
+        border: 1px black solid;
+        background-color: rgba(224, 220, 198, 0.42);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title">
+    <!-- TITLE -->
+    <a href="index.html" style="text-decoration: none;color: black;"><h2>AACR 2018 Targeted Immunotherapeutics Interactome</h2></a>
+    <h3>Antibody-Drug Conjugates</h3>
+      <h5>other topic: <a href="smi.html">Small Molecule Immunotherapeutics</a></h5>
+    </div>
+    
+    <!-- FILTER AND SEARCH -->
+    <div class="ui-widget" style="width:50%; float:right;">
+      <label for="search" style="font-size:1em;font-family: 'Lato','Roboto', sans-serif;">Search:</label>
+      <div id="search" style="width:15em;"></div>
+    </div>
+    <div id="dialog" title="Abstract text" style="font-size: 12px"></div>
+    <div>
+      <div style="margin-left:10em;">
+        <div>
+          <span>1. Choose the category: </span>
+          <select id="category">
+            <option value="target" selected>TARGET</option>
+            <option value="tumor">TUMOR</option>
+            <option value="model">MODEL</option>
+            <option value="sage">SAGE category</option>
+          </select>
+        </div>
+        <div>
+          <span>2. Filter by Academia or Pharma</span>
+          <select id="academia_pharma">
+            <option value="all" selected>ALL</option>
+            <option value="academia">Academia</option>
+            <option value="pharma">Pharma</option>
+          </select>
+        </div>
+        <div>
+          <span>3. Filter by Combination</span>
+          <select id="combo">
+            <option value="all" selected>ALL</option>
+            <option value="y">Yes</option>
+            <option value="n">No</option>
+          </select>
+        </div>
+          <button type="button" onclick="changeData()">Generate</button>
+          <br/>
+          <span><em>Click on the node to view the abstract.</em></span>
+        </div>
+    </div>
+    
+    <!-- INTERACTOME -->
+    <div id="canvas"></div>
+    
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
+    <link type="text/css" href="jquery-ui-1.12.1.custom/jquery-ui.min.css" rel="stylesheet"/>
+    <script type="text/javascript" src="jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/3.5.0/select2.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/3.5.0/select2.min.js"></script>
+    <script type="text/javascript" src="functionRepo.js"></script>
+    <script>
+
+// Graph
+    var width = 800
+        height = 700;
+    var diameter = 800;
+    var radius = 5.0, radiusLarge = 6.0;
+    var durationLength = 800;
+
+    var tree = d3.layout.tree()
+        .size([360, diameter / 2 - 200]) //-180
+        .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+        
+    var diagonal = d3.svg.diagonal.radial()
+        .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+    var cluster = d3.layout.cluster()
+         .size([height, width/2]);
+
+    var clusterDiagonal = d3.svg.diagonal()
+         .projection(function (d) {
+             return [d.y, d.x];
+    });
+
+
+    var svg = d3.select("#canvas").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")"); 
+
+    var svglinks = svg.append("g");
+
+    var select2_data = [];
+    var data;
+    var searchText = window.location.hash.substring(1);
+    var holder = "Name/Abstract ID";
+
+
+    d3.json("./json/aacr2018_adc_target_all_all.json", function(error, root) {
+      data = root;
+      update(data);
+      select2_data = processSelect2Data(data);
+      console.log(select2_data.length);
+      $("#search").select2({
+        placeholder: holder,
+        data: select2_data,
+        containerCssClass: "search"
+      });
+      //attach search box listener
+      $("#search").on("select2-selecting", function(e) {
+        searchText = e.object.id;
+        searchTree();
+      })
+    });
+
+    var div = d3.select("body").append("div")   
+      .attr("class", "nodeinfo")               
+      .style("opacity", 0)
+
+    $("#dialog").dialog({
+      autoOpen: false,
+      modal: true,
+      width: 600,
+      height: 300,
+      buttons: {
+        "Dismiss": function() {
+          $(this).dialog("close");
+        }
+      }
+    });
+
+   function changeData(){
+      var topic = "adc";
+      var category = $('#category option:selected').val();
+      var academia_pharma = $('#academia_pharma option:selected').val();
+      var combo = $('#combo option:selected').val();
+      var jsonFile = "json/aacr2018_"+topic+"_"+category+"_"+academia_pharma+"_"+combo+".json";
+
+      d3.json(jsonFile, function(error, root) {
+        data = root;
+        svg.selectAll(".node").remove();
+        update(data);
+        searchTree();
+        select2_data = processSelect2Data(data);
+        console.log(select2_data.length);
+        $("#search").select2({
+          placeholder: holder,
+          data: select2_data,
+          containerCssClass: "search"
+        });
+        $("#search").on("select2-selecting", function(e) {
+          searchText = e.object.id;
+          searchTree();
+        })
+      });
+    }
+
+    // Search function
+    function searchTree() {
+        d3.selectAll("circle").each(function(d){
+          var match = (searchText === d.id);
+          d3.select(this).style("fill", match ? "red" : "#FFFFFF");
+          d3.select(this).attr("r", match? radiusLarge: radius);
+        })
+    }
+
+    function update(root){
+      var nodes = tree.nodes(root),
+          links = tree.links(nodes);
+
+      var maxDepth = getDepth(root);
+      
+      svg.transition().duration(durationLength)
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+      
+      svglinks.selectAll(".link").remove();
+      
+      var link = svglinks.selectAll(".link")
+          .data(links, function(d) { return d.target.name; })
+          .enter().append("path")
+          .attr("class", "link")
+          .attr("d", diagonal);
+      
+      var node = svg.selectAll(".node")
+        .data(nodes, function(d) { return d.name; });
+
+      node.selectAll("text").remove()
+      
+      var enter = node.enter().append("g").attr("class", "node");
+      
+      enter.append("circle")
+        .attr("r", radius)
+        .attr("id", function(d){return d.name;})
+        .on("mouseover", function(d) {
+          d3.select(this).attr("r", radiusLarge);
+          var str;
+          if(d.depth == maxDepth-1){  
+            str = "<b>" + d.title + "</b><br/>";
+            str += d.presenterFirst + " " + d.presenterLast + "<br/>";
+          }else{
+            str = d.name;
+          }
+          showTooltip(d,str);
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).attr("r", radius);
+            hideToolTip();
+        })
+        .on("click", function(d){
+          hideToolTip();
+          if(d.depth == maxDepth-1){
+            showAbstract(d);
+          }else if(d.depth != 0){
+            transitionToCluster(d);
+          }
+        });
+      
+      
+      node.transition()
+          .duration(durationLength)
+          .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+
+      node.append("text")
+          .attr("class","nodeText")
+          .attr("dy", ".31em")
+          .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+          .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+          .text(foo)
+          .call(wrap,180);
+      
+      node.exit().remove(); 
+      if(searchText){
+        searchTree();
+      }
+    }
+
+    function transitionToCluster(root){
+      var nodes = cluster.nodes(root),
+          links = cluster.links(nodes);
+      
+      var maxDepth = getDepth(root);
+
+      svg.transition().duration(durationLength)
+          .attr("transform", "translate(100,0)");
+
+      svglinks.selectAll(".link").remove();
+      svg.selectAll('.node').remove();
+
+      var link = svglinks.selectAll(".link")
+          .data(links, function(d) { return d.target.name; })
+          .enter().append("path")
+          .attr("class", "link")
+          .attr("d", clusterDiagonal);
+      
+      var node = svg.selectAll(".node")
+        .data(nodes, function(d) { return d.name; });
+        
+      node.selectAll("text").remove()
+      
+      var enter = node.enter().append("g").attr("class", "node");
+      
+      enter.append("circle")
+        .attr("r", radius)
+        .attr("id", function(d){return d.name})
+        .on("mouseover", function(d) {
+          d3.select(this).attr("r", radiusLarge);
+          var str;
+          if(d.depth == maxDepth-1){  
+            str = "<strong>" + d.title + "</strong><br/>";
+            str += d.presenterFirst + " " + d.presenterLast + "<br/>";
+          }else{
+            str = d.name;
+          }
+          showTooltip(d,str);
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).attr("r", radius);
+            hideToolTip();
+        })
+        .on("click", function(d){
+          hideToolTip();
+          if(d.depth == maxDepth-1){
+            showAbstract(d);
+          }else if(d.depth == 0){
+            svg.selectAll('.node').remove();
+            update(data);
+          }else{
+            transitionToCluster(d);
+          }
+        });
+      
+      
+      node.transition()
+          .duration(durationLength)
+          .attr("transform", function(d) { return "translate(" + d.y +","+d.x + ")"; })
+
+      node.append("text")
+          .attr("class","nodeText")
+          .attr("dx", "1em")
+          .attr("dy", ".31em")
+          .attr("text-anchor","start")
+          .text(foo);
+      
+      node.exit().remove();  
+      if(searchText){
+        searchTree();
+      }
+    }
+
+
+    var foo = function(d) { 
+        return d.children ? d.name.split(" (")[0] : d.presenterLast + ", " + d.presenterFirst; 
+    }
+
+    function wrap(text, width) {
+      text.each(function() {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; }).attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; }).attr("dy", dy + "em");
+        while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(" "));
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop();
+            tspan.text(line.join(" "));
+            line = [word];
+            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          }
+        }
+      });
+    }
+
+    function getDepth(obj) {
+        var depth = 0;
+        if (obj.children) {
+            obj.children.forEach(function (d) {
+                var tmpDepth = getDepth(d);
+                if (tmpDepth > depth) {
+                    depth = tmpDepth;
+                }
+            })
+        }
+        return 1 + depth;
+    }
+
+    </script>
+    
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-left"><a href="http://sagebionetworks.org" target="_blank"><img src="image/sage-bionetworks-logo.svg" alt="Sage Bionetworks" style="width:200px;"></a></div> 
+        <div class="footer-left">Justin Guinney & Rodrigo Dientsmann <br/> Email: <a href="mailto:justin.guinney@sagebionetworks.org">justin.guinney@sagebionetworks.org</a></div>   
+    </footer> 
+  </body>
+</html>
