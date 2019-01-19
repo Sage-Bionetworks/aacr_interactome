@@ -1,8 +1,6 @@
 language: r
 cache: packages
 sudo: false
-r:
-  - release
 r_packages:
   - readxl
   - rjson
@@ -12,6 +10,6 @@ r_packages:
   - tm
   - slam
 before_install:
-  cd code
+  - cd code
 script:
-  Rscript ./AACR2018.R
+  - Rscript ./AACR2018.R
