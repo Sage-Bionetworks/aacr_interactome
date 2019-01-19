@@ -1,0 +1,17 @@
+language: r
+cache: packages
+sudo: false
+r:
+  - release
+r_packages:
+  - readxl
+  - rjson
+  - stringr
+  - org.Hs.eg.db
+  - xlsx
+  - tm
+  - slam
+before_install:
+  cd code
+script:
+  Rscript ./AACR2018.R
