@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1523037747752.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "2C31BB8E",
+    "lastKnownWriteTime" : 6,
+    "last_content_update" : 1523037747752,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "BB8B2AAF",
+        "caption" : "adc_abstracts",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=adc_abstracts&cache_key=BB8B2AAF",
+        "displayedObservations" : 85,
+        "environment" : "",
+        "object" : "adc_abstracts",
+        "preview" : 0,
+        "totalObservations" : 85,
+        "variables" : 22
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
