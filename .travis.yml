@@ -2,14 +2,9 @@ language: r
 cache: packages
 sudo: false
 fast_finish: true
-r_packages:
-  - readxl
-  - rjson
-  - stringr
-  - org.Hs.eg.db
-  - xlsx
-  - tm
-  - slam
+install:
+  - Rscript -e 'install.packages(c("readxl", "rjson", "stringr", "xlsx", "tm", "slam"))'
+  - Rscript -e 'source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db")'
 script:
   - cd code
   - Rscript ./AACR2018.R
