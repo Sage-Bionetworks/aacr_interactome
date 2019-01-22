@@ -8,3 +8,4 @@ install:
 script:
   - cd code
   - Rscript ./AACR2018.R
+  - ls ../interactome/json
