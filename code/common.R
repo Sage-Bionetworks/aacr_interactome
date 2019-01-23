@@ -176,7 +176,7 @@ categoryCluster <- function(root, tmp, filename){
     return (L)
   })
   
-  fileConn<-file(paste0("./json/",filename))
+  fileConn<-file(filename)
   writeLines(toJSON(root), fileConn)
   close(fileConn)
 }
@@ -205,7 +205,7 @@ categoryCluster2 <- function(root, tmp, filename){
     return (L)
   })
   
-  fileConn<-file(paste0("./json/",filename))
+  fileConn<-file(filename)
   writeLines(toJSON(root), fileConn)
   close(fileConn)
 }

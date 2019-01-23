@@ -6,14 +6,12 @@ library(xlsx)
 source("common.R")
 #source("geoFuncs.R")
 
-options(java.parameters = "-Xmx4g" )
+#options(java.parameters = "-Xmx4g" )
 
 # load data
 adc_abstracts <- read_excel("../data/adc_2018_v4.xlsx")
 smi_abstracts <- read_excel("../data/smi_2018_v4.xlsx")
-smi_abstracts$X__1 <- NULL
 colnames(smi_abstracts) <- tolower(colnames(smi_abstracts))
-
 colnames(adc_abstracts) <- colnames(smi_abstracts)
 
 # edit data
