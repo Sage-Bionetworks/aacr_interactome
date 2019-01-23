@@ -3,8 +3,10 @@ cache: packages
 sudo: false
 fast_finish: true
 install:
+  - pip install awscli --upgrade --user
   - Rscript -e 'install.packages(c("readxl", "rjson", "stringr", "xlsx", "tm", "slam"))'
   - Rscript -e 'source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db")'
 script:
   - cd code
   - Rscript ./AACR2018.R
+  - ls ../interactome/json
