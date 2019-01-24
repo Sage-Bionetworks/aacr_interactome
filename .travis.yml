@@ -20,4 +20,6 @@ jobs:
         - Rscript ./AACR2018.R
     - stage: deploy
       script:
-        - aws sync --acl public-read ./interactome/ s3://cancer.sagebase.org
+        - cd code
+        - Rscript ./AACR2018.R
+        - aws s3 sync --acl public-read ../interactome/ s3://cancer.sagebase.org
