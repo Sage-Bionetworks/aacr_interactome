@@ -17,4 +17,5 @@ jobs:
       - cd code
       - Rscript ./AACR2018.R
     - stage: deploy
-      - aws sync ../interactome/ s3://cancerxxxx
+#      - aws sync ../interactome/ s3://cancerxxxx
+      - ls ../interactome/json
