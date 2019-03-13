@@ -18,9 +18,9 @@ jobs:
     - stage: build
       script:
         - cd code
-        - Rscript ./create_interactome_files.R
+        - Rscript ./AACR2018.R
     - stage: deploy
       script:
         - cd code
-        - Rscript ./create_interactome_files.R
+        - Rscript ./AACR2018.R
         - sudo aws s3 sync --acl public-read ../interactome/ s3://cancer.sagebase.org
