@@ -118,7 +118,7 @@
   <body>
     <div class="title">
     <!-- TITLE -->
-    <a href="index.html" style="text-decoration: none;color: black;"><h2>AACR 2018 Targeted Immunotherapeutics Interactome</h2></a>
+    <a href="index.html" style="text-decoration: none;color: black;"><h2>AACR 2019 Targeted Immunotherapeutics Interactome</h2></a>
     <h3>Small Molecule Immunotherapeutics</h3>
     <h5>other topic: <a href="adc.html">Antibody-Drug Conjugates</a></h5>
     </div>
@@ -213,7 +213,7 @@
     var holder = "Name/Abstract ID";
 
 
-    d3.json("./json/aacr2018_smi_target_all_all.json", function(error, root) {
+    d3.json("./json/aacr2019_smi_target_all_all.json", function(error, root) {
       data = root;
       update(data);
       select2_data = processSelect2Data(data);
@@ -251,7 +251,7 @@
       var category = $('#category option:selected').val();
       var academia_pharma = $('#academia_pharma option:selected').val();
       var combo = $('#combo option:selected').val();
-      var jsonFile = "json/aacr2018_"+topic+"_"+category+"_"+academia_pharma+"_"+combo+".json";
+      var jsonFile = "json/aacr2019_"+topic+"_"+category+"_"+academia_pharma+"_"+combo+".json";
 
       d3.json(jsonFile, function(error, root) {
         data = root;
