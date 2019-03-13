@@ -164,7 +164,7 @@ categoryCluster <- function(root, tmp, filename){
                             title=row[["abstract_title"]],
                             presenterFirst=row[["presenter_firstname"]],
                             presenterLast=row[["presenter_lastname"]],
-                            keywords=gsub(";NA","",paste(row[["keyword1"]],row[["keyword2"]],row[["keyword3"]],row[["keyword4"]],sep=";")),
+                           # keywords=gsub(";NA","",paste(row[["keyword1"]],row[["keyword2"]],row[["keyword3"]],row[["keyword4"]],sep=";")),
                             target=row[["target"]],
                             tumor=row[["tumor"]],
                             sage=row[["sage_keyword"]],
