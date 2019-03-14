@@ -42,7 +42,7 @@ function showAbstract(d){
   $("#dialog").html("Loading....");
   $("#dialog").dialog("option", "title", d.id).dialog("open");
   d3.json("json/" + d.id + ".json", function(error, root){
- /*  //pubmed link for each author
+     //pubmed link for each author
      var author_arr = root.authors.split(", ");
      if(root.authors == ""){
        var temp = d.presenter_first + " " + d.presenter_last; 
@@ -52,9 +52,7 @@ function showAbstract(d){
        author_arr[index] = "<a href='http://www.ncbi.nlm.nih.gov/pubmed/?term="+x.replace(' ', '+')+"' target='_blank'>"+ x +"</a>";
      })
     
-     $("#dialog").html("<strong>Title: </strong>" + d.title + "<br/><strong>Authors:</strong> "+ author_arr.join(", ") +"<br/><strong>Keywords: </strong>"+root.keywords+"<br/><br/>" + root.text);
-     */
-     $("#dialog").html("<strong>Title: </strong>" + d.title + "<br/><br/>"+root.text);
+     $("#dialog").html("<strong>Title: </strong>" + d.title + "<br/><strong>Authors:</strong> "+ author_arr.join(", ") +"<br/><strong>Keywords: </strong>"+root.keywords+"<br/><br/>" + root.text);  
  });
 }
 
