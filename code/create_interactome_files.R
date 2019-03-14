@@ -14,25 +14,17 @@ dir.create(file.path("../interactome/", "json"), showWarnings = FALSE)
 
 ############ ADC #############
 
-# # Get abbreviation and description of Categrory
-# adc_abstracts$category_short <- sapply(strsplit(adc_abstracts$Category, ' '), '[', 1)
-# adc_abstracts$category <- sapply(adc_abstracts$Category, function(x){
-#   temp <- strsplit(x," ")[[1]]
-#   temp <- paste(temp[2:length(temp)],collapse = " ")
-#   return(temp)
-# })
-
 # export abstracts text to json 
 apply(adc_abstracts, 1, function(x){
   id <- trimws(as.character(x[["presentation_number"]]))
   l <- list()
   l[["ID"]] <- id
   l[["title"]] <- x[["abstract_title"]]
-  #l[["authors"]] <- x[["author_block"]]
+  l[["authors"]] <- x[["author_block"]]
   l[['presenter']] <- paste(x[["presenter_firstname"]], x[["presenter_lastname"]],x[["presenter_generation"]],sep=" ")
   l[["text"]] <- x[["abstract_body"]]
-  #l[["keywords"]] <- gsub(";NA","",paste(x[["keyword1"]],x[["keyword2"]],x[["keyword3"]],x[["keyword4"]],sep=";"))
-  #l[["organ"]] <- x[["primary_organ"]]
+  l[["keywords"]] <- gsub(";NA","",paste(x[["keyword1"]],x[["keyword2"]],x[["keyword3"]],x[["keyword4"]],sep=";"))
+  l[["organ"]] <- x[["primary_organ"]]
   l[["target"]] <- x[["target"]]
   l[["tumor"]] <- x[["tumor"]]
   l[["sage"]] <- x[["sage_keyword"]]
@@ -52,11 +44,11 @@ apply(smi_abstracts, 1, function(x){
   l <- list()
   l[["ID"]] <- id
   l[["title"]] <- x[["abstract_title"]]
-  #l[["authors"]] <- x[["author_block"]]
+  l[["authors"]] <- x[["author_block"]]
   l[['presenter']] <- paste(x[["presenter_firstname"]], x[["presenter_lastname"]],x[["presenter_generation"]],sep=" ")
   l[["text"]] <- x[["abstract_body"]]
-  #l[["keywords"]] <- gsub(";NA","",paste(x[["keyword1"]],x[["keyword2"]],x[["keyword3"]],x[["keyword4"]],sep=";"))
-  #l[["organ"]] <- x[["primary_organ"]]
+  l[["keywords"]] <- gsub(";NA","",paste(x[["keyword1"]],x[["keyword2"]],x[["keyword3"]],x[["keyword4"]],sep=";"))
+  l[["organ"]] <- x[["primary_organ"]]
   l[["target"]] <- x[["target"]]
   l[["tumor"]] <- x[["tumor"]]
   l[["sage"]] <- x[["sage_keyword"]]
