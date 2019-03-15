@@ -145,115 +145,47 @@ categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_pharma_n.jso
 root <- list(name="TUMOR",title="")
 
 # ADC
-adc.tumor <- strsplit(df.adc$tumor, split = "_")
-df.adc.id.temp <- data.frame(control_number= rep(df.adc$control_number, sapply(adc.tumor, length)), 
-                             tumor = unlist(adc.tumor),stringsAsFactors = FALSE)
+tmp <- split(df.adc, factor(df.adc$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_all.json")
+tmp <- split(df.adc.all.y, factor(df.adc.all.y$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_y.json")
+tmp <- split(df.adc.all.n, factor(df.adc.all.n$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_n.json")
 
-df.adc.temp <- df.adc
-df.adc.temp$tumor <- NULL
+tmp <- split(df.adc.academia.all, factor(df.adc.academia.all$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_all.json")
+tmp <- split(df.adc.academia.y, factor(df.adc.academia.y$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_y.json")
+tmp <- split(df.adc.academia.n, factor(df.adc.academia.n$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_n.json")
 
-df.adc.tumor <- merge(df.adc.id.temp,df.adc.temp,by = "control_number")
-
- # pharma_academia
-df.adc.temp <- df.adc.academia.all
-df.adc.temp$tumor <- NULL
-df.adc.tumor.academia.all <- merge(df.adc.id.temp,df.adc.temp,by = "control_number")
-
-df.adc.temp <- df.adc.pharma.all
-df.adc.temp$tumor <- NULL
-df.adc.tumor.pharma.all <- merge(df.adc.id.temp,df.adc.temp,by = "control_number")
-
- # combination
-df.adc.temp <- df.adc.all.y
-df.adc.temp$tumor <- NULL
-df.adc.tumor.all.y <- merge(df.adc.id.temp,df.adc.temp,by = "control_number")
-
-df.adc.temp <- df.adc.all.n
-df.adc.temp$tumor <- NULL
-df.adc.tumor.all.n <- merge(df.adc.id.temp,df.adc.temp,by = "control_number")
-
-# [pharma_academia]_[combination]
-df.adc.tumor.academia.y <- merge(df.adc.tumor.academia.all,df.adc.tumor.all.y)
-df.adc.tumor.academia.n <- merge(df.adc.tumor.academia.all,df.adc.tumor.all.n)
-df.adc.tumor.pharma.y <- merge(df.adc.tumor.pharma.all,df.adc.tumor.all.y)
-df.adc.tumor.pharma.n <- merge(df.adc.tumor.pharma.all,df.adc.tumor.all.n)
-
- # make cluster
-tmp <- split(df.adc.tumor, factor(df.adc.tumor$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_all.json")
-tmp <- split(df.adc.tumor.all.y, factor(df.adc.tumor.all.y$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_y.json")
-tmp <- split(df.adc.tumor.all.n, factor(df.adc.tumor.all.n$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_n.json")
-
-tmp <- split(df.adc.tumor.academia.all, factor(df.adc.tumor.academia.all$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_all.json")
-tmp <- split(df.adc.tumor.academia.y, factor(df.adc.tumor.academia.y$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_y.json")
-tmp <- split(df.adc.tumor.academia.n, factor(df.adc.tumor.academia.n$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_n.json")
-
-tmp <- split(df.adc.tumor.pharma.all, factor(df.adc.tumor.pharma.all$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_all.json")
-tmp <- split(df.adc.tumor.pharma.y, factor(df.adc.tumor.pharma.y$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_y.json")
-tmp <- split(df.adc.tumor.pharma.n, factor(df.adc.tumor.pharma.n$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_n.json")
+tmp <- split(df.adc.pharma.all, factor(df.adc.pharma.all$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_all.json")
+tmp <- split(df.adc.pharma.y, factor(df.adc.pharma.y$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_y.json")
+tmp <- split(df.adc.pharma.n, factor(df.adc.pharma.n$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_n.json")
 
 # SMI
-smi.tumor <- strsplit(df.smi$tumor, split = "_")
-df.smi.id.temp <- data.frame(control_number= rep(df.smi$control_number, sapply(smi.tumor, length)), 
-                             tumor = unlist(smi.tumor),stringsAsFactors = FALSE)
+tmp <- split(df.smi, factor(df.smi$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_all.json")
+tmp <- split(df.smi.all.y, factor(df.smi.all.y$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_y.json")
+tmp <- split(df.smi.all.n, factor(df.smi.all.n$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_n.json")
 
-df.smi.temp <- df.smi
-df.smi.temp$tumor <- NULL
+tmp <- split(df.smi.academia.all, factor(df.smi.academia.all$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_all.json")
+tmp <- split(df.smi.academia.y, factor(df.smi.academia.y$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_y.json")
+tmp <- split(df.smi.academia.n, factor(df.smi.academia.n$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_n.json")
 
-df.smi.tumor <- merge(df.smi.id.temp,df.smi.temp,by = "control_number")
-
-# pharma_academia
-df.smi.temp <- df.smi.academia.all
-df.smi.temp$tumor <- NULL
-df.smi.tumor.academia.all <- merge(df.smi.id.temp,df.smi.temp,by = "control_number")
-
-df.smi.temp <- df.smi.pharma.all
-df.smi.temp$tumor <- NULL
-df.smi.tumor.pharma.all <- merge(df.smi.id.temp,df.smi.temp,by = "control_number")
-
-# combination
-df.smi.temp <- df.smi.all.y
-df.smi.temp$tumor <- NULL
-df.smi.tumor.all.y <- merge(df.smi.id.temp,df.smi.temp,by = "control_number")
-
-df.smi.temp <- df.smi.all.n
-df.smi.temp$tumor <- NULL
-df.smi.tumor.all.n <- merge(df.smi.id.temp,df.smi.temp,by = "control_number")
-
-# [pharma_academia]_[combination]
-df.smi.tumor.academia.y <- merge(df.smi.tumor.academia.all,df.smi.tumor.all.y)
-df.smi.tumor.academia.n <- merge(df.smi.tumor.academia.all,df.smi.tumor.all.n)
-df.smi.tumor.pharma.y <- merge(df.smi.tumor.pharma.all,df.smi.tumor.all.y)
-df.smi.tumor.pharma.n <- merge(df.smi.tumor.pharma.all,df.smi.tumor.all.n)
-
-# make cluster
-tmp <- split(df.smi.tumor, factor(df.smi.tumor$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_all.json")
-tmp <- split(df.smi.tumor.all.y, factor(df.smi.tumor.all.y$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_y.json")
-tmp <- split(df.smi.tumor.all.n, factor(df.smi.tumor.all.n$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_n.json")
-
-tmp <- split(df.smi.tumor.academia.all, factor(df.smi.tumor.academia.all$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_all.json")
-tmp <- split(df.smi.tumor.academia.y, factor(df.smi.tumor.academia.y$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_y.json")
-tmp <- split(df.smi.tumor.academia.n, factor(df.smi.tumor.academia.n$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_n.json")
-
-tmp <- split(df.smi.tumor.pharma.all, factor(df.smi.tumor.pharma.all$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_all.json")
-tmp <- split(df.smi.tumor.pharma.y, factor(df.smi.tumor.pharma.y$tumor))
-categoryCluster2(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_y.json")
-tmp <- split(df.smi.tumor.pharma.n, factor(df.smi.tumor.pharma.n$tumor))
+tmp <- split(df.smi.pharma.all, factor(df.smi.pharma.all$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_all.json")
+tmp <- split(df.smi.pharma.y, factor(df.smi.pharma.y$tumor))
+categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_y.json")
+tmp <- split(df.smi.pharma.n, factor(df.smi.pharma.n$tumor))
 categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_n.json")
 
 

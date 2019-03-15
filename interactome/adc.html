@@ -107,6 +107,19 @@
         border: 1px black solid;
         background-color: rgba(224, 220, 198, 0.42);
       }
+      .button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        border-radius: 8px;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -123,8 +136,8 @@
       <div id="search" style="width:15em;"></div>
     </div>
     <div id="dialog" title="Abstract text" style="font-size: 12px"></div>
-    <div>
-      <div style="margin-left:10em;">
+    <div style="margin-left:10em;display:flex">
+      <div>
         <div>
           <span>1. Choose the category: </span>
           <select id="category">
@@ -150,11 +163,15 @@
             <option value="n">No</option>
           </select>
         </div>
-          <button type="button" onclick="changeData()">Generate</button>
-          <br/>
-          <span><em>Click on the node to view the abstract.</em></span>
+      </div>
+        <div style="margin-left: 1.5em;">
+          <button type="button" class="button" onclick="changeData()">Generate</button>
         </div>
     </div>
+        <div style="margin-left:10em;margin-top:1em;">
+          <span><em>Click on the node to view the abstract.</em></span>
+        </div>
+    
     
     <!-- INTERACTOME -->
     <div id="canvas"></div>
