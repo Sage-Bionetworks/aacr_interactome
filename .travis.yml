@@ -23,4 +23,4 @@ jobs:
       script:
         - cd code
         - Rscript ./create_interactome_files.R
-        - sudo aws s3 sync --acl public-read ../interactome/ s3://cancer.sagebase.org
+        - sudo aws s3 sync --acl public-read ../interactome/ s3://cancer.sagebionetworks.org
