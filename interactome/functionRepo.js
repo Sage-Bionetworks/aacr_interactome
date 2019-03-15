@@ -43,16 +43,22 @@ function showAbstract(d){
   $("#dialog").dialog("option", "title", d.id).dialog("open");
   d3.json("json/" + d.id + ".json", function(error, root){
      //pubmed link for each author
-     var author_arr = root.authors.split(", ");
+     var author_affiliation = root.authors.split("</sup>.");
      if(root.authors == ""){
-       var temp = d.presenter_first + " " + d.presenter_last; 
-       author_arr.push(temp);
+        var temp = d.presenter_first + " " + d.presenter_last; 
+        author_affiliation.push(temp);
      }
-     author_arr.forEach(function(x,index){
-       author_arr[index] = "<a href='http://www.ncbi.nlm.nih.gov/pubmed/?term="+x.replace(' ', '+')+"' target='_blank'>"+ x +"</a>";
-     })
+     /*author_affiliation.forEach(function(x,index){
+        var temp_arr = x.split('<sup>');
+        if(temp_arr[1].length === 1){
+           temp_arr[0] = "<a href='http://www.ncbi.nlm.nih.gov/pubmed/?term="+temp_arr[0].replace(' ', '+')+"' target='_blank'>"+ temp_arr[0] +"</a>";
+           author_affiliation[index] = temp_arr.join('<sup>')
+        }else{
+          // do nothing
+        }
+     })*/
     
-     $("#dialog").html("<strong>Title: </strong>" + d.title + "<br/><strong>Authors:</strong> "+ author_arr.join(", ") +"<br/><strong>Keywords: </strong>"+root.keywords+"<br/><br/>" + root.text);  
+     $("#dialog").html("<strong>Title: </strong>" + d.title + "<br/><strong>Authors:</strong> "+ author_affiliation.join("</sup>.<br/>") +"<br/><br/><strong>Keywords: </strong>"+root.keywords+"<br/><br/>" + root.text);  
  });
 }
 
