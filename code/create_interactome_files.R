@@ -7,7 +7,7 @@ source("common.R")
 
 # load data
 adc_abstracts <- read_excel("../data/adc_2019_v4.xlsx")
-smi_abstracts <- read_excel("../data/smi_2019_v4.xlsx")
+smi_abstracts <- read_excel("../data/smi_2019_v5.xlsx")
 
 # create json folder inside interactome - for S3
 dir.create(file.path("../interactome/", "json"), showWarnings = FALSE)
