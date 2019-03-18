@@ -10,7 +10,12 @@ adc_abstracts <- read_excel("../data/adc_2019_v4.xlsx")
 smi_abstracts <- read_excel("../data/smi_2019_v5.xlsx")
 
 # create json folder inside interactome - for S3
-dir.create(file.path("../interactome/", "json"), showWarnings = FALSE)
+json.dir <- file.path("../interactome", "json")
+dir.create(json.dir, showWarnings = FALSE)
+existing.files <- paste(json.dir,list.files(path = json.dir),sep = "/")
+if(length(existing.files) > 1){
+    length(file.remove(existing.files))
+}
 
 ############ ADC #############
 
