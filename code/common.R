@@ -1,5 +1,6 @@
 library(tm)
 library(slam)
+library(rjson)
 
 abstract.stop.words <- c("cancer","express","studi","activ","result",
                          "increas","gene","protein","level","signific",
@@ -152,25 +153,20 @@ listNodeInfo <- function(id){
   return(L)
 }
 
-categoryCluster <- function(root, tmp, filename){
+
+
+categoryCluster <- function(root, tmp, filename, json_cols, json_aliases){
+  # Thomas's Version
   root[["children"]] <- lapply(names(tmp), function(categoryName){
     L <- list(id=categoryName,name=categoryName,presenterLast=categoryName)
     children <- list()
     tbl <- tmp[[categoryName]]
     for(i in 1:nrow(tbl)){
       row <- tbl[i,]
-      children[[i]] <- list(id = row[["presentation_number"]],
-                            name=row[["presentation_number"]],
-                            title=row[["abstract_title"]],
-                            presenterFirst=row[["presenter_firstname"]],
-                            presenterLast=row[["presenter_lastname"]],
-                            keywords=gsub(";NA","",paste(row[["keyword1"]],row[["keyword2"]],row[["keyword3"]],row[["keyword4"]],sep=";")),
-                            target=row[["target"]],
-                            tumor=row[["tumor"]],
-                            sage=row[["sage_keyword"]],
-                            pharma=row[["pharma_academia"]],
-                            combo=row[["combination"]],
-                            model=row[["model"]])
+      children[[i]] <- lapply(json_cols, function(col){
+        row[[col]]
+      })
+      names(children[[i]]) <- json_aliases
     }
     L[["children"]] <- children
     return (L)
@@ -180,6 +176,35 @@ categoryCluster <- function(root, tmp, filename){
   writeLines(toJSON(root), fileConn)
   close(fileConn)
 }
+
+# categoryCluster <- function(root, tmp, filename){
+#   root[["children"]] <- lapply(names(tmp), function(categoryName){
+#     L <- list(id=categoryName,name=categoryName,presenterLast=categoryName)
+#     children <- list()
+#     tbl <- tmp[[categoryName]]
+#     for(i in 1:nrow(tbl)){
+#       row <- tbl[i,]
+#       children[[i]] <- list(id = row[["presentation_number"]],
+#                             name=row[["presentation_number"]],
+#                             title=row[["abstract_title"]],
+#                             presenterFirst=row[["presenter_firstname"]],
+#                             presenterLast=row[["presenter_lastname"]],
+#                             keywords=gsub(";NA","",paste(row[["keyword1"]],row[["keyword2"]],row[["keyword3"]],row[["keyword4"]],sep=";")),
+#                             target=row[["target"]],
+#                             tumor=row[["tumor"]],
+#                             sage=row[["sage_keyword"]],
+#                             pharma=row[["pharma_academia"]],
+#                             combo=row[["combination"]],
+#                             model=row[["model"]])
+#     }
+#     L[["children"]] <- children
+#     return (L)
+#   })
+  
+#   fileConn<-file(filename)
+#   writeLines(toJSON(root), fileConn)
+#   close(fileConn)
+# }
 
 categoryCluster2 <- function(root, tmp, filename){
   root[["children"]] <- lapply(names(tmp), function(categoryName){
