@@ -40,13 +40,13 @@ grouping_aliases <- NULL
 # This vector, json_columns will include the names of columns we would 
 # like to include in the json file for each presentation/publication
 json_cols <- c("presentation_number", "presentation_number", 
-               "abstract_title", "presenter_firstname", 
-               "presenter_lastname", "keywords", "primary_organ", 
-               "target", "tumor", "sage_keyword", "pharma_academia", 
-               "combination", "model")
+               "abstract_title", "author_block", "presenter_firstname", 
+               "presenter_lastname", "abstract_body", "keywords", 
+               "primary_organ", "target", "tumor", "sage_keyword", 
+               "pharma_academia", "combination", "model")
 # json_aliases will contain the names of those fields in the json file,
 # in order. There can be multiple json aliases mapped to the same column
 # name, just make sure to duplicate the column name in json_cols
-json_aliases <- c("id", "name", "title", "presenterFirst", 
-                  "presenterLast", "keywords", "organ", "target", 
+json_aliases <- c("id", "name", "title", "authors", "presenterFirst", 
+                  "presenterLast", "text", "keywords", "organ", "target", 
                   "tumor", "sage", "pharma", "combo", "model")

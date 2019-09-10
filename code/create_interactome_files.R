@@ -30,7 +30,7 @@ apply(tag_data, 1, function(pub){
     pub[[col]]
   })
   names(info) <- json_aliases
-  id <- pub[[id_column]]
+  id <- trimws(as.character(pub[[id_column]]))
   fileConn<-file(paste0("../interactome/json/", id,".json"))
   writeLines(toJSON(info), fileConn)
   close(fileConn)
@@ -75,7 +75,9 @@ for(group_col in grouping_cols){
   for(comb in combs_list){
     comb_df <- get(paste0(comb, collapse=""))
     tmp <- split(comb_df, factor(pull(comb_df, group_col)))
-    categoryCluster(root, tmp, paste0(c(json_path, group_col, comb, ".json"), collapse="_"),
+    categoryCluster(root, tmp, 
+                    paste0(paste0(c(json_path, group_col, comb), collapse="_"), 
+                              ".json", collapse=""),
                     json_cols=json_cols, json_aliases=json_aliases)
   }
 }
