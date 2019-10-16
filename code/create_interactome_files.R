@@ -1,6 +1,5 @@
 library(dplyr)
 
-# source("config.R")
 ## Running this file requires objects created with names
 # data_path (filename of data being used), 
 # json_dir (where to place the json files), 
@@ -13,6 +12,11 @@ library(dplyr)
 # filter_aliases, names we should call these filtered columns in the jsons
 # json_cols, vector of column values to include in the json objects
 # json_aliases, vector of names to call these values
+## So these objects must be defined in the sourced config file
+## the path of which should be specified in the only argument 
+## in the command line
+
+source(commandArgs(trailingOnly=TRUE))
 
 source("common.R")
 
