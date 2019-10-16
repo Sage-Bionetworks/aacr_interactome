@@ -1,289 +1,104 @@
-library(readxl)
-library(rjson)
-library(stringr)
-library(org.Hs.eg.db)
-library(xlsx)
+## Creates data files for the interactome visualization,
+## code developed by Thomas Corey, Xindi Guo
+## Running this file requires objects created with names
+# data_path (filename of data being used), 
+# json_dir (where to place the json files), 
+# json_path (json_dir + common name of the json files w/o the extension)
+# manipulate, a function which takes in a dataframe and returns a dataframe,
+#   containing any manipulations one would like to do on the data before
+#   creating the interactome
+# id_column, column name of id, which should be unique for each row
+# filter_columns, a vector of column names to allow users to filter by
+# filter_aliases, names we should call these filtered columns in the jsons
+# json_cols, vector of column values to include in the json objects
+# json_aliases, vector of names to call these values
+## So these objects must be defined in the sourced config file
+## the path of which should be specified in the only argument 
+## in the command line
+
+library(dplyr)
+
+
+source(commandArgs(trailingOnly=TRUE))
+
 source("common.R")
 
-# load data
-adc_abstracts <- read_excel("../data/adc.xlsx")
-smi_abstracts <- read_excel("../data/smi.xlsx")
-
-# create json folder inside interactome - for S3
-json.dir <- file.path("../interactome", "json")
-dir.create(json.dir, showWarnings = FALSE)
-existing.files <- paste(json.dir,list.files(path = json.dir),sep = "/")
-if(length(existing.files) > 1){
-    length(file.remove(existing.files))
+if(endsWith(data_path, ".xlsx")) {
+  library(readxl)
+  tag_data <- read_excel(data_path)
+} else if(endsWith(data_path, ".csv")) {
+  library(readr)
+  tag_data <- read_csv(data_path)
+} else{
+  print("Data is not in a recognized file type!")
 }
 
-############ ADC #############
+# Perform predetermined data manipulations from config file
+tag_data <- manipulate(tag_data)
 
-# export abstracts text to json 
-apply(adc_abstracts, 1, function(x){
-  id <- trimws(as.character(x[["presentation_number"]]))
-  l <- list()
-  l[["ID"]] <- id
-  l[["title"]] <- x[["abstract_title"]]
-  l[["authors"]] <- x[["author_block"]]
-  l[['presenter']] <- paste(x[["presenter_firstname"]], x[["presenter_lastname"]],x[["presenter_generation"]],sep=" ")
-  l[["text"]] <- x[["abstract_body"]]
-  l[["keywords"]] <- gsub(";NA","",paste(x[["keyword1"]],x[["keyword2"]],x[["keyword3"]],x[["keyword4"]],sep=";"))
-  l[["organ"]] <- x[["primary_organ"]]
-  l[["target"]] <- x[["target"]]
-  l[["tumor"]] <- x[["tumor"]]
-  l[["sage"]] <- x[["sage_keyword"]]
-  l[["pharma"]] <- x[["pharma_academia"]]
-  l[["combo"]] <- x[["combination"]]
-  l[["model"]] <- x[["model"]]
-  fileConn<-file(paste0("../interactome/json/",id,".json"))
-  writeLines(toJSON(l), fileConn)
+# Create json folder inside interactome, for S3
+dir.create(json_dir, showWarnings = FALSE)
+#existing_files <- paste(json_dir, list.files(path = json_dir),sep = "/")
+#if(length(existing_files) > 1){
+#  length(file.remove(existing_files))
+#}
+
+# Export abstracts to individual jsons to be displayed
+# when the leaves are clicked
+apply(tag_data, 1, function(pub){
+  info <- lapply(json_cols, function(col){
+    pub[[col]]
+  })
+  names(info) <- json_aliases
+  id <- trimws(as.character(pub[[id_column]]))
+  fileConn<-file(paste0("../interactome/json/", id,".json"))
+  writeLines(toJSON(info), fileConn)
   close(fileConn)
-  return(NA)
 })
 
+# combs_list will contain vectors of strings describing 
+# all possible combinations of all levels of the filtering
+# variables, as well as an "all" level for each, which 
+# does not filter on that variable
+combs_list <- list(NULL)
+for(col in filter_columns){
+  levs <- c("all", pull(tag_data, col) %>% unique)
+  temp <- list()
+  for(lev in levs){
+    temp <- temp %>% append(lapply(combs_list, function(x){
+      return(c(x, lev))
+    }))
+  }
+  combs_list <- temp
+}
 
-############ SMI #############
-apply(smi_abstracts, 1, function(x){
-  id <- trimws(as.character(x[["presentation_number"]]))
-  l <- list()
-  l[["ID"]] <- id
-  l[["title"]] <- x[["abstract_title"]]
-  l[["authors"]] <- x[["author_block"]]
-  l[['presenter']] <- paste(x[["presenter_firstname"]], x[["presenter_lastname"]],x[["presenter_generation"]],sep=" ")
-  l[["text"]] <- x[["abstract_body"]]
-  l[["keywords"]] <- gsub(";NA","",paste(x[["keyword1"]],x[["keyword2"]],x[["keyword3"]],x[["keyword4"]],sep=";"))
-  l[["organ"]] <- x[["primary_organ"]]
-  l[["target"]] <- x[["target"]]
-  l[["tumor"]] <- x[["tumor"]]
-  l[["sage"]] <- x[["sage_keyword"]]
-  l[["pharma"]] <- x[["pharma_academia"]]
-  l[["combo"]] <- x[["combination"]]
-  l[["model"]] <- x[["model"]]
-  fileConn<-file(paste0("../interactome/json/",id,".json"))
-  writeLines(toJSON(l), fileConn)
-  close(fileConn)
-  return(NA)
-})
+# Create dfs (accessible using get(), each being a different filtering of our
+# data based on a combination of levels of the filter_columns)
+for(comb in combs_list){
+  temp <- tag_data
+  for(i in 1:length(comb)){
+    if(comb[i] != "all"){
+      temp <- temp[c(temp[, filter_columns[i]] == comb[i]), ]
+    }
+  }
+  assign(paste0(comb, collapse=""), temp)
+}
 
-# Outputs
+# We also may want to keep these dfs in a list 
+combination_dfs <- lapply(combs_list, function(x){
+  get(paste0(x, collapse=""))
+  })
 
-df.adc <- adc_abstracts
-df.smi <- smi_abstracts
+# 
+for(group_col in grouping_cols){
+  root <- list(name=group_col)
+  for(comb in combs_list){
+    comb_df <- get(paste0(comb, collapse=""))
+    tmp <- split(comb_df, factor(pull(comb_df, group_col)))
+    categoryCluster(root, tmp, 
+                    paste0(paste0(c(json_path, group_col, comb), collapse="_"), 
+                              ".json", collapse=""),
+                    json_cols=json_cols, json_aliases=json_aliases)
+  }
+}
 
-# df.[topic].[pharma_academia].[combination]
-
-# pharma_academia
-df.adc.academia.all <- df.adc[df.adc$pharma_academia =="academia",]
-df.adc.pharma.all <- df.adc[df.adc$pharma_academia =="pharma",]
-
-df.smi.academia.all <- df.smi[df.smi$pharma_academia =="academia",]
-df.smi.pharma.all <- df.smi[df.smi$pharma_academia =="pharma",]
-
-# combination
-df.adc.all.y <- df.adc[df.adc$combination =="combo",]
-df.adc.all.n <- df.adc[df.adc$combination =="single",]
-
-df.smi.all.y <- df.smi[df.smi$combination =="combo",]
-df.smi.all.n <- df.smi[df.smi$combination =="single",]
-
-# [pharma_academia]_[combination]
-df.adc.academia.y <- merge(df.adc.academia.all,df.adc.all.y)
-df.adc.academia.n <- merge(df.adc.academia.all,df.adc.all.n)
-df.adc.pharma.y <- merge(df.adc.pharma.all,df.adc.all.y)
-df.adc.pharma.n <- merge(df.adc.pharma.all,df.adc.all.n)
-
-df.smi.academia.y <- merge(df.smi.academia.all,df.smi.all.y)
-df.smi.academia.n <- merge(df.smi.academia.all,df.smi.all.n)
-df.smi.pharma.y <- merge(df.smi.pharma.all,df.smi.all.y)
-df.smi.pharma.n <- merge(df.smi.pharma.all,df.smi.all.n)
-
-# TARGET clustering
-# aacr2019_adc_target_[pharma_academia]_[combination].json
-root <- list(name="TARGET",title="")
-
-# ADC
-tmp <- split(df.adc, factor(df.adc$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_all_all.json")
-tmp <- split(df.adc.all.y, factor(df.adc.all.y$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_all_y.json")
-tmp <- split(df.adc.all.n, factor(df.adc.all.n$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_all_n.json")
-
-tmp <- split(df.adc.academia.all, factor(df.adc.academia.all$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_academia_all.json")
-tmp <- split(df.adc.academia.y, factor(df.adc.academia.y$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_academia_y.json")
-tmp <- split(df.adc.academia.n, factor(df.adc.academia.n$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_academia_n.json")
-
-tmp <- split(df.adc.pharma.all, factor(df.adc.pharma.all$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_pharma_all.json")
-tmp <- split(df.adc.pharma.y, factor(df.adc.pharma.y$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_pharma_y.json")
-tmp <- split(df.adc.pharma.n, factor(df.adc.pharma.n$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_target_pharma_n.json")
-
-# SMI
-tmp <- split(df.smi, factor(df.smi$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_all_all.json")
-tmp <- split(df.smi.all.y, factor(df.smi.all.y$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_all_y.json")
-tmp <- split(df.smi.all.n, factor(df.smi.all.n$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_all_n.json")
-
-tmp <- split(df.smi.academia.all, factor(df.smi.academia.all$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_academia_all.json")
-tmp <- split(df.smi.academia.y, factor(df.smi.academia.y$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_academia_y.json")
-tmp <- split(df.smi.academia.n, factor(df.smi.academia.n$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_academia_n.json")
-
-tmp <- split(df.smi.pharma.all, factor(df.smi.pharma.all$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_pharma_all.json")
-tmp <- split(df.smi.pharma.y, factor(df.smi.pharma.y$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_pharma_y.json")
-tmp <- split(df.smi.pharma.n, factor(df.smi.pharma.n$target))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_target_pharma_n.json")
-
-# TUMOR clustering
-root <- list(name="TUMOR",title="")
-
-# ADC
-tmp <- split(df.adc, factor(df.adc$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_all.json")
-tmp <- split(df.adc.all.y, factor(df.adc.all.y$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_y.json")
-tmp <- split(df.adc.all.n, factor(df.adc.all.n$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_all_n.json")
-
-tmp <- split(df.adc.academia.all, factor(df.adc.academia.all$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_all.json")
-tmp <- split(df.adc.academia.y, factor(df.adc.academia.y$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_y.json")
-tmp <- split(df.adc.academia.n, factor(df.adc.academia.n$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_academia_n.json")
-
-tmp <- split(df.adc.pharma.all, factor(df.adc.pharma.all$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_all.json")
-tmp <- split(df.adc.pharma.y, factor(df.adc.pharma.y$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_y.json")
-tmp <- split(df.adc.pharma.n, factor(df.adc.pharma.n$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_tumor_pharma_n.json")
-
-# SMI
-tmp <- split(df.smi, factor(df.smi$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_all.json")
-tmp <- split(df.smi.all.y, factor(df.smi.all.y$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_y.json")
-tmp <- split(df.smi.all.n, factor(df.smi.all.n$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_all_n.json")
-
-tmp <- split(df.smi.academia.all, factor(df.smi.academia.all$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_all.json")
-tmp <- split(df.smi.academia.y, factor(df.smi.academia.y$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_y.json")
-tmp <- split(df.smi.academia.n, factor(df.smi.academia.n$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_academia_n.json")
-
-tmp <- split(df.smi.pharma.all, factor(df.smi.pharma.all$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_all.json")
-tmp <- split(df.smi.pharma.y, factor(df.smi.pharma.y$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_y.json")
-tmp <- split(df.smi.pharma.n, factor(df.smi.pharma.n$tumor))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_tumor_pharma_n.json")
-
-
-# Sage clustering
-root <- list(name="SAGE Category",title="")
-
-# ADC
-tmp <- split(df.adc, factor(df.adc$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_all_all.json")
-tmp <- split(df.adc.all.y, factor(df.adc.all.y$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_all_y.json")
-tmp <- split(df.adc.all.n, factor(df.adc.all.n$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_all_n.json")
-
-tmp <- split(df.adc.academia.all, factor(df.adc.academia.all$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_academia_all.json")
-tmp <- split(df.adc.academia.y, factor(df.adc.academia.y$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_academia_y.json")
-tmp <- split(df.adc.academia.n, factor(df.adc.academia.n$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_academia_n.json")
-
-tmp <- split(df.adc.pharma.all, factor(df.adc.pharma.all$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_pharma_all.json")
-tmp <- split(df.adc.pharma.y, factor(df.adc.pharma.y$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_pharma_y.json")
-tmp <- split(df.adc.pharma.n, factor(df.adc.pharma.n$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_sage_pharma_n.json")
-
-# SMI
-tmp <- split(df.smi, factor(df.smi$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_all_all.json")
-tmp <- split(df.smi.all.y, factor(df.smi.all.y$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_all_y.json")
-tmp <- split(df.smi.all.n, factor(df.smi.all.n$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_all_n.json")
-
-tmp <- split(df.smi.academia.all, factor(df.smi.academia.all$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_academia_all.json")
-tmp <- split(df.smi.academia.y, factor(df.smi.academia.y$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_academia_y.json")
-tmp <- split(df.smi.academia.n, factor(df.smi.academia.n$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_academia_n.json")
-
-tmp <- split(df.smi.pharma.all, factor(df.smi.pharma.all$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_pharma_all.json")
-tmp <- split(df.smi.pharma.y, factor(df.smi.pharma.y$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_pharma_y.json")
-tmp <- split(df.smi.pharma.n, factor(df.smi.pharma.n$sage_keyword))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_sage_pharma_n.json")
-
-# Model clustering
-root <- list(name="MODEL",title="")
-
-# ADC
-tmp <- split(df.adc, factor(df.adc$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_all_all.json")
-tmp <- split(df.adc.all.y, factor(df.adc.all.y$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_all_y.json")
-tmp <- split(df.adc.all.n, factor(df.adc.all.n$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_all_n.json")
-
-tmp <- split(df.adc.academia.all, factor(df.adc.academia.all$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_academia_all.json")
-tmp <- split(df.adc.academia.y, factor(df.adc.academia.y$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_academia_y.json")
-tmp <- split(df.adc.academia.n, factor(df.adc.academia.n$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_academia_n.json")
-
-tmp <- split(df.adc.pharma.all, factor(df.adc.pharma.all$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_pharma_all.json")
-tmp <- split(df.adc.pharma.y, factor(df.adc.pharma.y$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_pharma_y.json")
-tmp <- split(df.adc.pharma.n, factor(df.adc.pharma.n$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_adc_model_pharma_n.json")
-
-# SMI
-tmp <- split(df.smi, factor(df.smi$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_all_all.json")
-tmp <- split(df.smi.all.y, factor(df.smi.all.y$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_all_y.json")
-tmp <- split(df.smi.all.n, factor(df.smi.all.n$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_all_n.json")
-
-tmp <- split(df.smi.academia.all, factor(df.smi.academia.all$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_academia_all.json")
-tmp <- split(df.smi.academia.y, factor(df.smi.academia.y$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_academia_y.json")
-tmp <- split(df.smi.academia.n, factor(df.smi.academia.n$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_academia_n.json")
-
-tmp <- split(df.smi.pharma.all, factor(df.smi.pharma.all$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_pharma_all.json")
-tmp <- split(df.smi.pharma.y, factor(df.smi.pharma.y$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_pharma_y.json")
-tmp <- split(df.smi.pharma.n, factor(df.smi.pharma.n$model))
-categoryCluster(root, tmp, "../interactome/json/aacr2019_smi_model_pharma_n.json")
