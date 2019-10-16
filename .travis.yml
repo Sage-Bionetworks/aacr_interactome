@@ -17,15 +17,9 @@ jobs:
     - stage: build
       script:
         - cd code
-        - Rscript ./config_smi.R
-        - Rscript ./create_interactome_files.R
-        - Rscript ./config_adc.R
-        - Rscript ./create_interactome_files.R
+        - Rscript ./create_interactome_files.R ./config_smi.R & Rscript ./create_interactome_files.R ./config_adc.R
     - stage: deploy
       script:
         - cd code
-        - Rscript ./config_smi.R
-        - Rscript ./create_interactome_files.R
-        - Rscript ./config_adc.R
-        - Rscript ./create_interactome_files.R
+        - Rscript ./create_interactome_files.R ./config_smi.R & Rscript ./create_interactome_files.R ./config_adc.R
         - sudo aws s3 sync --acl public-read ../interactome/ s3://cancer.sagebionetworks.org
