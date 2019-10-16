@@ -1,3 +1,6 @@
+## Collection of common/useful functions for interactome purposes
+## code developed by Thomas Corey, Xindi Guo
+
 library(tm)
 library(slam)
 library(rjson)

@@ -1,5 +1,5 @@
-library(dplyr)
-
+## Creates data files for the interactome visualization,
+## code developed by Thomas Corey, Xindi Guo
 ## Running this file requires objects created with names
 # data_path (filename of data being used), 
 # json_dir (where to place the json files), 
@@ -15,6 +15,9 @@ library(dplyr)
 ## So these objects must be defined in the sourced config file
 ## the path of which should be specified in the only argument 
 ## in the command line
+
+library(dplyr)
+
 
 source(commandArgs(trailingOnly=TRUE))
 
